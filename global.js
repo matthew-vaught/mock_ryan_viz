@@ -45,11 +45,10 @@ function applyDefaultPreset() {
         3: new Set([2, 3])    // tropics → Group 3 (green)
     };
 }
-
 applyDefaultPreset();
 
 // =========================================
-// HELPER TO CHECK IF GROUPS match preset pattern (for annotations)
+// CHECK IF GROUPS MATCH DEFAULT (for annotations)
 // =========================================
 function groupsMatchDefaultPattern(groups) {
     const sizes = Object.values(groups).map(s => s.size);
@@ -67,7 +66,7 @@ function groupsMatchDefaultPattern(groups) {
 }
 
 // =========================================
-// UPDATE CHART WHEN GROUP CHANGES
+// UPDATE CHART BASED ON GROUPS
 // =========================================
 function updateChartFromGroups() {
     const groupedData = computeGroupAverages(tasData, userGroups, latitudeBands);
@@ -140,13 +139,12 @@ const groupColorScale = d3.scaleOrdinal()
     .range(d3.schemeSet1);
 
 // =========================================
-// CLICK LOGIC
+// CLICK LOGIC FOR CYCLING GROUPS
 // =========================================
 function handleBandClick(bandId) {
     for (let g = 1; g <= 3; g++) {
         if (userGroups[g].has(bandId)) {
             userGroups[g].delete(bandId);
-
             if (g < 3) userGroups[g + 1].add(bandId);
             return;
         }
@@ -158,13 +156,13 @@ function handleBandClick(bandId) {
 // COMPUTE GROUP AVERAGES
 // =========================================
 function computeGroupAverages(data, groups, bands) {
-    const groupResults = [];
+    const results = [];
 
     for (let g = 1; g <= 3; g++) {
-        const bandIds = groups[g];
-        if (bandIds.size === 0) continue;
+        const ids = groups[g];
+        if (ids.size === 0) continue;
 
-        const ranges = bands.filter(b => bandIds.has(b.id));
+        const ranges = bands.filter(b => ids.has(b.id));
 
         const filtered = data.filter(d =>
             ranges.some(b => d.lat >= b.min && d.lat < b.max)
@@ -176,13 +174,13 @@ function computeGroupAverages(data, groups, bands) {
             d => d.year
         );
 
-        groupResults.push({
+        results.push({
             name: `Group ${g}`,
             values: nested.map(([year, tas]) => ({ year, tas }))
         });
     }
 
-    return groupResults;
+    return results;
 }
 
 // =========================================
@@ -262,11 +260,11 @@ function renderTASChart(groupedData) {
         });
 
     // =====================================
-    // CLEAN ANNOTATIONS (NO BOXES)
+    // CLEAN ANNOTATIONS (UPDATED POSITIONS)
     // =====================================
     if (groupsMatchDefaultPattern(userGroups)) {
 
-        // Polar warming annotation
+        // ----- TOP ANNOTATION -----
         let tx = x(1870);
         let ty = y(1.3);
 
@@ -280,18 +278,19 @@ function renderTASChart(groupedData) {
                 t.append("tspan").text("the rest of the planet.").attr("x", tx).attr("dy", "1.2em");
             });
 
+        // Arrow repositioned so it does NOT overlap text
         svg.append("line")
-            .attr("x1", tx + 180)
+            .attr("x1", tx + 230)     // moved further right
             .attr("x2", x(2010))
-            .attr("y1", ty + 10)
+            .attr("y1", ty + 40)      // moved farther down below text block
             .attr("y2", y(1.55))
             .attr("stroke", "black")
             .attr("stroke-width", 1.2)
             .attr("marker-end", "url(#arrowhead)");
 
-        // Aerosol cooling annotation
+        // ----- BOTTOM ANNOTATION -----
         const ax = x(1930);
-        const ay = height + 20;
+        const ay = height + 45;   // moved down to avoid overlapping with x-axis
 
         svg.append("text")
             .attr("class", "annotation")
@@ -306,7 +305,7 @@ function renderTASChart(groupedData) {
         svg.append("line")
             .attr("x1", x(1950))
             .attr("x2", x(1968))
-            .attr("y1", ay + 10)
+            .attr("y1", ay + 10)     // starts below the text block
             .attr("y2", y(-0.1))
             .attr("stroke", "black")
             .attr("stroke-width", 1.2)
