@@ -269,8 +269,8 @@ function renderTASChart(groupedData) {
     if (groupsMatchDefaultPattern(userGroups)) {
 
         // ----- TOP ANNOTATION -----
-        let tx = x(1870);
-        let ty = y(1.3);
+        let tx = x(1880);
+        let ty = y(1.25);
 
         // Text block
         svg.append("text")
@@ -295,7 +295,7 @@ function renderTASChart(groupedData) {
 
         // ----- BOTTOM ANNOTATION -----
         const ax = x(1930);
-        const ay = height + 50;   // new safe position below axis
+        const ay = height + 60;   // new safe position below axis
 
         svg.append("text")
             .attr("class", "annotation")
@@ -311,7 +311,7 @@ function renderTASChart(groupedData) {
         svg.append("line")
             .attr("x1", x(1950))
             .attr("x2", x(1968))
-            .attr("y1", ay + 10)
+            .attr("y1", ay - 15)
             .attr("y2", y(-0.1))
             .attr("stroke", "black")
             .attr("stroke-width", 1.2)

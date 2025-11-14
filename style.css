@@ -104,3 +104,11 @@
     margin: 20px 0;
     border-radius: 6px;
 }
+
+#linechart {
+    overflow: visible;  
+}
+
+.main-flex-wrapper {
+    overflow: visible;
+}
