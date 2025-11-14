@@ -314,7 +314,7 @@ function renderTASChart(groupedData) {
 
         // ----- BOTTOM ANNOTATION -----
         const ax = x(1930);
-        const ay = height + 60;   // new safe position below axis
+        const ay = height + 80;   // new safe position below axis
 
         svg.append("text")
             .attr("class", "annotation")
@@ -328,7 +328,7 @@ function renderTASChart(groupedData) {
 
         // Arrow pointing up to dip
         svg.append("line")
-            .attr("x1", x(1950))
+            .attr("x1", x(1955))
             .attr("x2", x(1968))
             .attr("y1", ay - 15)
             .attr("y2", y(-0.1))
