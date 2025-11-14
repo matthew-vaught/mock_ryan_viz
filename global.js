@@ -193,7 +193,7 @@ function renderTASChart(groupedData) {
 
     // NEW: give more space for annotations + axes
     const width = 600;
-    const height = 460;
+    const height = 420;
     const margin = { top: 40, right: 60, bottom: 120, left: 60 };
 
     const svg = d3.select("#linechart").append("svg")
@@ -286,7 +286,7 @@ function renderTASChart(groupedData) {
         // Arrow perfectly aligned downward from last tspan
         svg.append("line")
             .attr("x1", tx + 220)
-            .attr("y1", ty + 45)
+            .attr("y1", ty + 25)
             .attr("x2", x(2010))
             .attr("y2", y(1.55))
             .attr("stroke", "black")
