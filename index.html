@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latitude Interactive Viz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1 class="title">Global Warming Isn’t Fair</h1>
+    <h2 class="subtitle">
+        A Study of How Temperature Increases Affect Different Latitudinal Regions of the Globe
+    </h2>
+    <h3 class="subsubtitle">
+        An Interactive Visualization to Explore How Global Warming Disproportionately Affects the North and South Pole
+    </h3>
+
+    <p class="instructions">
+        <strong>How to use this visualization:</strong><br>
+        The globe is divided into six horizontal latitude bands.  
+        Click any band to cycle it through the three color-coded groups:<br>
+        <span style="color:#1f77b4;">Blue (Group 1)</span> → 
+        <span style="color:#ff7f0e;">Orange (Group 2)</span> →
+        <span style="color:#2ca02c;">Green (Group 3)</span> →
+        None.<br><br>
+        Only grouped bands are plotted in the temperature-change chart.
+    </p>
+
+    <div class="button-row">
+        <button id="clear-all">Clear All Groups</button>
+        <button id="restore-defaults">Restore Default Grouping</button>
+    </div>
+
+    <div class="viz-container">
+        <div id="linechart"></div>
+        <div id="latmap"></div>
+    </div>
+
+    <script type="module" src="global.js"></script>
+</body>
+</html>
