@@ -78,13 +78,12 @@ function updateChartFromGroups() {
 // MAP RENDERING
 // =========================================
 async function renderLatMapWithWorld(bands, userGroups) {
-    const width = 400;
+    const width = 360;
     const height = 200;
-    const margin = { right: 60 };
 
     const svg = d3.select("#latmap")
         .append("svg")
-        .attr("width", width + margin.right)
+        .attr("width", width)
         .attr("height", height);
 
     const projection = d3.geoNaturalEarth1()
@@ -119,8 +118,8 @@ async function renderLatMapWithWorld(bands, userGroups) {
         .attr("y", d => yFromLat(d.max))
         .attr("height", d => yFromLat(d.min) - yFromLat(d.max))
         .attr("fill", d =>
-            [1, 2, 3].find(g => userGroups[g].has(d.id)) ?
-            groupColorScale([1, 2, 3].find(g => userGroups[g].has(d.id))) :
+            [1,2,3].find(g => userGroups[g].has(d.id)) ?
+            groupColorScale([1,2,3].find(g => userGroups[g].has(d.id))) :
             "rgba(255,255,255,0.0)"
         )
         .attr("stroke", "#000")
@@ -133,29 +132,15 @@ async function renderLatMapWithWorld(bands, userGroups) {
             renderLatMapWithWorld(latitudeBands, userGroups);
             updateChartFromGroups();
         });
-
-    // Labels
-    svg.append("g")
-        .selectAll(".lat-label")
-        .data(bands)
-        .enter()
-        .append("text")
-        .attr("class", "lat-label")
-        .attr("x", width + 55)
-        .attr("y", d => yFromLat((d.min + d.max) / 2))
-        .attr("dy", "0.35em")
-        .attr("text-anchor", "end")
-        .style("font-size", "10px")
-        .style("fill", "#333")
-        .text(d => `${d.max}° to ${d.min}°`);
 }
 
+// Color scale
 const groupColorScale = d3.scaleOrdinal()
     .domain([1, 2, 3])
     .range(d3.schemeSet1);
 
 // =========================================
-// CLICK LOGIC FOR GROUP CYCLING
+// CLICK LOGIC
 // =========================================
 function handleBandClick(bandId) {
     for (let g = 1; g <= 3; g++) {
@@ -179,10 +164,10 @@ function computeGroupAverages(data, groups, bands) {
         const bandIds = groups[g];
         if (bandIds.size === 0) continue;
 
-        const groupBandRanges = bands.filter(b => bandIds.has(b.id));
+        const ranges = bands.filter(b => bandIds.has(b.id));
 
         const filtered = data.filter(d =>
-            groupBandRanges.some(b => d.lat >= b.min && d.lat < b.max)
+            ranges.some(b => d.lat >= b.min && d.lat < b.max)
         );
 
         const nested = d3.rollups(
@@ -209,7 +194,7 @@ function renderTASChart(groupedData) {
     const allValues = groupedData.flatMap(d => d.values);
 
     const width = 600, height = 400;
-    const margin = { top: 40, right: 120, bottom: 100, left: 60 };
+    const margin = { top: 40, right: 20, bottom: 20, left: 60 };
 
     const svg = d3.select("#linechart").append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -217,7 +202,7 @@ function renderTASChart(groupedData) {
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // ---- Arrowhead for annotation arrows ----
+    // Arrowhead
     svg.append("defs").append("marker")
         .attr("id", "arrowhead")
         .attr("viewBox", "0 0 10 10")
@@ -245,23 +230,7 @@ function renderTASChart(groupedData) {
     svg.append("g")
         .call(d3.axisLeft(y));
 
-    // Axis labels
-    svg.append("text")
-        .attr("class", "x-axis-label")
-        .attr("x", width / 2)
-        .attr("y", height + 35)
-        .attr("text-anchor", "middle")
-        .text("Year");
-
-    svg.append("text")
-        .attr("class", "y-axis-label")
-        .attr("transform", "rotate(-90)")
-        .attr("x", -height / 2)
-        .attr("y", -40)
-        .attr("text-anchor", "middle")
-        .text("Temperature Change (°C)");
-
-    // Line generator
+    // Lines
     const line = d3.line()
         .x(d => x(d.year))
         .y(d => y(d.tas));
@@ -275,102 +244,69 @@ function renderTASChart(groupedData) {
         .attr("d", d => line(d.values));
 
     // Legend
-    const legend = svg.selectAll(".legend")
+    svg.selectAll(".legend")
         .data(groupedData)
         .join("g")
-        .attr("transform", (d, i) => `translate(${width + 10},${i * 25})`);
+        .attr("transform", (d, i) => `translate(${width - 60},${i * 20})`)
+        .each(function(d) {
+            d3.select(this).append("rect")
+                .attr("width", 12)
+                .attr("height", 12)
+                .attr("fill", groupColorScale(Number(d.name.replace("Group ", ""))));
 
-    legend.append("rect")
-        .attr("width", 12)
-        .attr("height", 12)
-        .attr("fill", d => groupColorScale(Number(d.name.replace("Group ", ""))));
-
-    legend.append("text")
-        .attr("x", 18)
-        .attr("y", 10)
-        .text(d => d.name)
-        .style("font-size", "12px");
+            d3.select(this).append("text")
+                .attr("x", 18)
+                .attr("y", 10)
+                .text(d.name)
+                .style("font-size", "12px");
+        });
 
     // =====================================
-    // STYLED ANNOTATIONS
+    // CLEAN ANNOTATIONS (NO BOXES)
     // =====================================
     if (groupsMatchDefaultPattern(userGroups)) {
 
-        // ----- POLAR WARMING ANNOTATION (TOP-LEFT) -----
-        const boxX = x(1870);
-        const boxY = y(1.2);
-        const boxWidth = 260;
-        const boxHeight = 70;
-
-        svg.append("rect")
-            .attr("class", "annotation-box")
-            .attr("x", boxX - 10)
-            .attr("y", boxY - 40)
-            .attr("width", boxWidth)
-            .attr("height", boxHeight)
-            .attr("rx", 8)
-            .attr("ry", 8);
+        // Polar warming annotation
+        let tx = x(1870);
+        let ty = y(1.3);
 
         svg.append("text")
             .attr("class", "annotation")
-            .attr("x", boxX)
-            .attr("y", boxY - 20)
+            .attr("x", tx)
+            .attr("y", ty)
             .call(t => {
-                t.append("tspan")
-                    .text("Since the early 2000s, the polar latitudes")
-                    .attr("x", boxX).attr("dy", "1.2em");
-                t.append("tspan")
-                    .text("have warmed dramatically faster than")
-                    .attr("x", boxX).attr("dy", "1.2em");
-                t.append("tspan")
-                    .text("the rest of the planet.");
+                t.append("tspan").text("Since the early 2000s, the polar latitudes").attr("x", tx).attr("dy", "0em");
+                t.append("tspan").text("have warmed dramatically faster than").attr("x", tx).attr("dy", "1.2em");
+                t.append("tspan").text("the rest of the planet.").attr("x", tx).attr("dy", "1.2em");
             });
 
         svg.append("line")
-            .attr("x1", boxX + 200)
+            .attr("x1", tx + 180)
             .attr("x2", x(2010))
-            .attr("y1", boxY + 20)
-            .attr("y2", y(1.6))
+            .attr("y1", ty + 10)
+            .attr("y2", y(1.55))
             .attr("stroke", "black")
             .attr("stroke-width", 1.2)
             .attr("marker-end", "url(#arrowhead)");
 
-        // ----- AEROSOL COOLING ANNOTATION (BOTTOM CENTER) -----
-        const aeroBoxX = x(1930);
-        const aeroBoxY = height + 40;
-        const aeroWidth = 330;
-        const aeroHeight = 75;
-
-        svg.append("rect")
-            .attr("class", "annotation-box")
-            .attr("x", aeroBoxX - 10)
-            .attr("y", aeroBoxY)
-            .attr("width", aeroWidth)
-            .attr("height", aeroHeight)
-            .attr("rx", 8)
-            .attr("ry", 8);
+        // Aerosol cooling annotation
+        const ax = x(1930);
+        const ay = height + 20;
 
         svg.append("text")
             .attr("class", "annotation")
-            .attr("x", aeroBoxX)
-            .attr("y", aeroBoxY + 20)
+            .attr("x", ax)
+            .attr("y", ay)
             .call(t => {
-                t.append("tspan")
-                    .text("Between ~1940 and 1970, global temperatures")
-                    .attr("x", aeroBoxX)
-                    .attr("dy", "1.2em");
-                t.append("tspan")
-                    .text("temporarily decreased due to aerosols in the")
-                    .attr("x", aeroBoxX)
-                    .attr("dy", "1.2em");
-                t.append("tspan")
-                    .text("air reflecting sunlight.");
+                t.append("tspan").text("Between ~1940 and 1970, global temperatures").attr("x", ax).attr("dy", "0em");
+                t.append("tspan").text("temporarily decreased due to aerosols").attr("x", ax).attr("dy", "1.2em");
+                t.append("tspan").text("reflecting sunlight back into space.").attr("x", ax).attr("dy", "1.2em");
             });
 
         svg.append("line")
             .attr("x1", x(1950))
             .attr("x2", x(1968))
-            .attr("y1", height + 60)
+            .attr("y1", ay + 10)
             .attr("y2", y(-0.1))
             .attr("stroke", "black")
             .attr("stroke-width", 1.2)

@@ -1,67 +1,67 @@
 /* --- TITLE STYLING --- */
 .title {
     text-align: center;
-    font-size: 36px;
+    font-size: 38px;
     margin-top: 20px;
     color: #1a1a1a;
 }
 
 .subtitle {
     text-align: center;
-    font-size: 22px;
+    font-size: 24px;
     margin-top: -10px;
     color: #333;
 }
 
 .subsubtitle {
     text-align: center;
-    font-size: 16px;
+    font-size: 17px;
     margin-top: -5px;
+    margin-bottom: 15px;
     color: #555;
 }
 
-/* --- MAIN LAYOUT --- */
-.viz-wrapper {
+/* --- MAIN SPLIT LAYOUT --- */
+.main-flex-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    margin-top: 20px;
+}
+
+/* LEFT: Chart */
+#linechart {
+    flex-shrink: 0;
+}
+
+/* RIGHT SIDE */
+.right-side {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 360px;
 }
 
-/* Instructions centered above globe */
-.instructions-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-
-.instructions {
+/* Instructions to the right of plot */
+.instructions-right {
     text-align: center;
-    max-width: 700px;
     font-size: 15px;
     color: #444;
     margin-bottom: 15px;
+    max-width: 320px;
 }
 
-/* --- VIZ AREA --- */
-.viz-container {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 40px;
-    justify-content: center;
+/* Globe container */
+#latmap {
     margin-top: 10px;
-}
-
-.globe-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 /* Buttons under globe */
 .button-row {
     margin-top: 10px;
     display: flex;
+    justify-content: center;
     gap: 12px;
 }
 
@@ -81,15 +81,6 @@
 .annotation {
     font-size: 13px;
     fill: #222;
-    background: white;
-}
-
-/* Annotation boxes */
-.annotation-box {
-    fill: white;
-    stroke: #555;
-    stroke-width: 1.2;
-    opacity: 0.9;
 }
 
 /* --- WRITE-UP --- */
