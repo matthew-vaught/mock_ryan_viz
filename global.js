@@ -231,6 +231,25 @@ function renderTASChart(groupedData) {
     // Y-axis
     svg.append("g")
         .call(d3.axisLeft(y));
+    
+    // X-axis label
+    svg.append("text")
+        .attr("class", "x-axis-label")
+        .attr("x", width / 2)
+        .attr("y", height + 50)   // moved down for new margin
+        .attr("text-anchor", "middle")
+        .style("font-size", "14px")
+        .text("Year");
+
+    // Y-axis label
+    svg.append("text")
+        .attr("class", "y-axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -45)
+        .attr("text-anchor", "middle")
+        .style("font-size", "14px")
+        .text("Temperature Change (°C)");
 
     // Lines
     const line = d3.line()
@@ -286,7 +305,7 @@ function renderTASChart(groupedData) {
         // Arrow perfectly aligned downward from last tspan
         svg.append("line")
             .attr("x1", tx + 220)
-            .attr("y1", ty + 25)
+            .attr("y1", ty + 5)
             .attr("x2", x(2010))
             .attr("y2", y(1.55))
             .attr("stroke", "black")
