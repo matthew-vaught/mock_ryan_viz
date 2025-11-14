@@ -119,8 +119,8 @@ async function renderLatMapWithWorld(bands, userGroups) {
         .attr("y", d => yFromLat(d.max))
         .attr("height", d => yFromLat(d.min) - yFromLat(d.max))
         .attr("fill", d =>
-            [1,2,3].find(g => userGroups[g].has(d.id)) ?
-            groupColorScale([1,2,3].find(g => userGroups[g].has(d.id))) :
+            [1, 2, 3].find(g => userGroups[g].has(d.id)) ?
+            groupColorScale([1, 2, 3].find(g => userGroups[g].has(d.id))) :
             "rgba(255,255,255,0.0)"
         )
         .attr("stroke", "#000")
@@ -209,13 +209,26 @@ function renderTASChart(groupedData) {
     const allValues = groupedData.flatMap(d => d.values);
 
     const width = 600, height = 400;
-    const margin = { top: 40, right: 120, bottom: 40, left: 60 };
+    const margin = { top: 40, right: 120, bottom: 100, left: 60 };
 
     const svg = d3.select("#linechart").append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // ---- Arrowhead for annotation arrows ----
+    svg.append("defs").append("marker")
+        .attr("id", "arrowhead")
+        .attr("viewBox", "0 0 10 10")
+        .attr("refX", 5)
+        .attr("refY", 5)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto-start-reverse")
+        .append("path")
+        .attr("d", "M 0 0 L 10 5 L 0 10 z")
+        .attr("fill", "#333");
 
     const x = d3.scaleLinear()
         .domain(d3.extent(allValues, d => d.year))
@@ -232,6 +245,7 @@ function renderTASChart(groupedData) {
     svg.append("g")
         .call(d3.axisLeft(y));
 
+    // Axis labels
     svg.append("text")
         .attr("class", "x-axis-label")
         .attr("x", width / 2)
@@ -247,6 +261,7 @@ function renderTASChart(groupedData) {
         .attr("text-anchor", "middle")
         .text("Temperature Change (°C)");
 
+    // Line generator
     const line = d3.line()
         .x(d => x(d.year))
         .y(d => y(d.tas));
@@ -259,6 +274,7 @@ function renderTASChart(groupedData) {
         .attr("stroke-width", 2)
         .attr("d", d => line(d.values));
 
+    // Legend
     const legend = svg.selectAll(".legend")
         .data(groupedData)
         .join("g")
@@ -276,39 +292,89 @@ function renderTASChart(groupedData) {
         .style("font-size", "12px");
 
     // =====================================
-    // CONDITIONAL ANNOTATIONS
+    // STYLED ANNOTATIONS
     // =====================================
     if (groupsMatchDefaultPattern(userGroups)) {
 
-        // Polar warming annotation
+        // ----- POLAR WARMING ANNOTATION (TOP-LEFT) -----
+        const boxX = x(1870);
+        const boxY = y(1.2);
+        const boxWidth = 260;
+        const boxHeight = 70;
+
+        svg.append("rect")
+            .attr("class", "annotation-box")
+            .attr("x", boxX - 10)
+            .attr("y", boxY - 40)
+            .attr("width", boxWidth)
+            .attr("height", boxHeight)
+            .attr("rx", 8)
+            .attr("ry", 8);
+
         svg.append("text")
-            .attr("x", x(2005))
-            .attr("y", y(1.5))
             .attr("class", "annotation")
-            .text("Poles have rapidly accelerated warming since 2000 →");
+            .attr("x", boxX)
+            .attr("y", boxY - 20)
+            .call(t => {
+                t.append("tspan")
+                    .text("Since the early 2000s, the polar latitudes")
+                    .attr("x", boxX).attr("dy", "1.2em");
+                t.append("tspan")
+                    .text("have warmed dramatically faster than")
+                    .attr("x", boxX).attr("dy", "1.2em");
+                t.append("tspan")
+                    .text("the rest of the planet.");
+            });
 
         svg.append("line")
-            .attr("x1", x(1995))
-            .attr("x2", x(2008))
-            .attr("y1", y(1.4))
-            .attr("y2", y(1.7))
+            .attr("x1", boxX + 200)
+            .attr("x2", x(2010))
+            .attr("y1", boxY + 20)
+            .attr("y2", y(1.6))
             .attr("stroke", "black")
-            .attr("stroke-dasharray", "4 2");
+            .attr("stroke-width", 1.2)
+            .attr("marker-end", "url(#arrowhead)");
 
-        // Aerosol cooling annotation
+        // ----- AEROSOL COOLING ANNOTATION (BOTTOM CENTER) -----
+        const aeroBoxX = x(1930);
+        const aeroBoxY = height + 40;
+        const aeroWidth = 330;
+        const aeroHeight = 75;
+
+        svg.append("rect")
+            .attr("class", "annotation-box")
+            .attr("x", aeroBoxX - 10)
+            .attr("y", aeroBoxY)
+            .attr("width", aeroWidth)
+            .attr("height", aeroHeight)
+            .attr("rx", 8)
+            .attr("ry", 8);
+
         svg.append("text")
-            .attr("x", x(1965))
-            .attr("y", y(-0.3))
             .attr("class", "annotation")
-            .text("1960–1980 dip caused by aerosol cooling");
+            .attr("x", aeroBoxX)
+            .attr("y", aeroBoxY + 20)
+            .call(t => {
+                t.append("tspan")
+                    .text("Between ~1940 and 1970, global temperatures")
+                    .attr("x", aeroBoxX)
+                    .attr("dy", "1.2em");
+                t.append("tspan")
+                    .text("temporarily decreased due to aerosols in the")
+                    .attr("x", aeroBoxX)
+                    .attr("dy", "1.2em");
+                t.append("tspan")
+                    .text("air reflecting sunlight.");
+            });
 
         svg.append("line")
-            .attr("x1", x(1960))
-            .attr("x2", x(1980))
-            .attr("y1", y(-0.25))
+            .attr("x1", x(1950))
+            .attr("x2", x(1968))
+            .attr("y1", height + 60)
             .attr("y2", y(-0.1))
             .attr("stroke", "black")
-            .attr("stroke-dasharray", "4 2");
+            .attr("stroke-width", 1.2)
+            .attr("marker-end", "url(#arrowhead)");
     }
 }
 
