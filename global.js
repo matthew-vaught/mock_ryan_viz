@@ -40,15 +40,15 @@ const latitudeBands = [
 // =========================================
 function applyDefaultPreset() {
     userGroups = {
-        1: new Set([0, 5]),   // poles → Group 1 (blue)
-        2: new Set([1, 4]),   // mid-latitudes → Group 2 (red)
-        3: new Set([2, 3])    // tropics → Group 3 (green)
+        1: new Set([0, 5]),   // poles
+        2: new Set([1, 4]),   // mid-latitudes
+        3: new Set([2, 3])    // tropics
     };
 }
 applyDefaultPreset();
 
 // =========================================
-// CHECK IF GROUPS MATCH DEFAULT (for annotations)
+// CHECK IF GROUPS MATCH DEFAULT
 // =========================================
 function groupsMatchDefaultPattern(groups) {
     const sizes = Object.values(groups).map(s => s.size);
@@ -191,8 +191,10 @@ function renderTASChart(groupedData) {
 
     const allValues = groupedData.flatMap(d => d.values);
 
-    const width = 600, height = 400;
-    const margin = { top: 40, right: 20, bottom: 20, left: 60 };
+    // NEW: give more space for annotations + axes
+    const width = 600;
+    const height = 460;
+    const margin = { top: 40, right: 60, bottom: 120, left: 60 };
 
     const svg = d3.select("#linechart").append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -221,10 +223,12 @@ function renderTASChart(groupedData) {
         .domain(d3.extent(allValues, d => d.tas)).nice()
         .range([height, 0]);
 
+    // X-axis
     svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x).ticks(10).tickFormat(d3.format("d")));
 
+    // Y-axis
     svg.append("g")
         .call(d3.axisLeft(y));
 
@@ -260,7 +264,7 @@ function renderTASChart(groupedData) {
         });
 
     // =====================================
-    // CLEAN ANNOTATIONS (UPDATED POSITIONS)
+    // ANNOTATIONS — new fixed positions
     // =====================================
     if (groupsMatchDefaultPattern(userGroups)) {
 
@@ -268,6 +272,7 @@ function renderTASChart(groupedData) {
         let tx = x(1870);
         let ty = y(1.3);
 
+        // Text block
         svg.append("text")
             .attr("class", "annotation")
             .attr("x", tx)
@@ -278,11 +283,11 @@ function renderTASChart(groupedData) {
                 t.append("tspan").text("the rest of the planet.").attr("x", tx).attr("dy", "1.2em");
             });
 
-        // Arrow repositioned so it does NOT overlap text
+        // Arrow perfectly aligned downward from last tspan
         svg.append("line")
-            .attr("x1", tx + 230)     // moved further right
+            .attr("x1", tx + 220)
+            .attr("y1", ty + 45)
             .attr("x2", x(2010))
-            .attr("y1", ty + 40)      // moved farther down below text block
             .attr("y2", y(1.55))
             .attr("stroke", "black")
             .attr("stroke-width", 1.2)
@@ -290,7 +295,7 @@ function renderTASChart(groupedData) {
 
         // ----- BOTTOM ANNOTATION -----
         const ax = x(1930);
-        const ay = height + 45;   // moved down to avoid overlapping with x-axis
+        const ay = height + 50;   // new safe position below axis
 
         svg.append("text")
             .attr("class", "annotation")
@@ -302,10 +307,11 @@ function renderTASChart(groupedData) {
                 t.append("tspan").text("reflecting sunlight back into space.").attr("x", ax).attr("dy", "1.2em");
             });
 
+        // Arrow pointing up to dip
         svg.append("line")
             .attr("x1", x(1950))
             .attr("x2", x(1968))
-            .attr("y1", ay + 10)     // starts below the text block
+            .attr("y1", ay + 10)
             .attr("y2", y(-0.1))
             .attr("stroke", "black")
             .attr("stroke-width", 1.2)
